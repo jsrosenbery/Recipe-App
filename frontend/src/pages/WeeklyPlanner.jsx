@@ -24,6 +24,26 @@ function keyFor(day, meal) {
   return `${day}-${meal}`;
 }
 
+function parseLocalDate(value) {
+  return new Date(`${value}T00:00:00`);
+}
+
+function shiftWeek(value, amount) {
+  const date = parseLocalDate(value);
+  date.setDate(date.getDate() + (amount * 7));
+  return date.toISOString().slice(0, 10);
+}
+
+function dateForDay(weekStart, day) {
+  const date = parseLocalDate(weekStart);
+  date.setDate(date.getDate() + DAYS.indexOf(day));
+  return date;
+}
+
+function formatDayDate(date) {
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
 export function WeeklyPlanner({ activePlan, notice, onNotice, onSetActiveWeek, onPlanChange, onGenerated }) {
   const [weekStart, setWeekStart] = useState(activePlan?.week_start || getMonday());
   const [items, setItems] = useState(activePlan?.items || []);
@@ -51,11 +71,20 @@ export function WeeklyPlanner({ activePlan, notice, onNotice, onSetActiveWeek, o
     return map;
   }, [days]);
 
-  async function activateWeek() {
+  async function goToWeek(nextWeekStart) {
+    setWeekStart(nextWeekStart);
     setSaving(true);
-    const plan = await onSetActiveWeek(weekStart);
-    setSaving(false);
-    return plan;
+    try {
+      const plan = await onSetActiveWeek(nextWeekStart);
+      onPlanChange(plan);
+      return plan;
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function activateWeek() {
+    return goToWeek(weekStart);
   }
 
   function setSlot(item, day, meal) {
@@ -132,6 +161,11 @@ export function WeeklyPlanner({ activePlan, notice, onNotice, onSetActiveWeek, o
           {notice && <p className="status-message">{notice}</p>}
         </div>
         <div className="active-week-controls">
+          <div className="week-nav">
+            <button type="button" onClick={() => goToWeek(shiftWeek(weekStart, -1))} disabled={saving}>Previous week</button>
+            <button type="button" onClick={() => goToWeek(getMonday())} disabled={saving}>This week</button>
+            <button type="button" onClick={() => goToWeek(shiftWeek(weekStart, 1))} disabled={saving}>Next week</button>
+          </div>
           <label className="week-picker">
             Week of
             <input type="date" value={weekStart} onChange={(event) => setWeekStart(event.target.value)} />
@@ -148,7 +182,10 @@ export function WeeklyPlanner({ activePlan, notice, onNotice, onSetActiveWeek, o
           return (
             <div className={`planner-row ${dinnerNeeded ? '' : 'dinner-off'}`} key={day}>
               <div className="day-cell">
-                <strong className="day-label">{day}</strong>
+                <div className="day-heading">
+                  <strong className="day-label">{day}</strong>
+                  <span className="day-date">{formatDayDate(dateForDay(weekStart, day))}</span>
+                </div>
                 <label className="dinner-toggle">
                   <input type="checkbox" checked={dinnerNeeded} onChange={() => toggleDinner(day)} />
                   Dinner needed
