@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { DownloadCloud } from 'lucide-react';
 import { api } from '../lib/api';
+import { ErrorDialog } from '../components/ErrorDialog';
 import { emptyRecipe, RecipeForm } from '../components/RecipeForm';
 
 export function AddRecipe({ onSaved }) {
@@ -8,6 +9,7 @@ export function AddRecipe({ onSaved }) {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [saveError, setSaveError] = useState('');
 
   async function importRecipe() {
     if (!url) return;
@@ -26,11 +28,12 @@ export function AddRecipe({ onSaved }) {
 
   async function saveRecipe(payload) {
     setLoading(true);
+    setSaveError('');
     try {
       await api.createRecipe(payload);
       onSaved();
     } catch (error) {
-      setMessage(error.message);
+      setSaveError(error.message || 'This recipe has content that cannot be saved. Please review it and try again.');
     } finally {
       setLoading(false);
     }
@@ -38,6 +41,7 @@ export function AddRecipe({ onSaved }) {
 
   return (
     <section className="page">
+      <ErrorDialog message={saveError} onClose={() => setSaveError('')} />
       <header className="page-header">
         <div>
           <p className="eyebrow">Add or import</p>
