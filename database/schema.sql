@@ -85,9 +85,21 @@ CREATE TABLE IF NOT EXISTS meal_plans (
   user_id UUID REFERENCES users(id) ON DELETE CASCADE,
   week_start DATE NOT NULL,
   name TEXT,
+  is_active BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(user_id, week_start)
+);
+
+ALTER TABLE meal_plans ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT FALSE;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_meal_plans_one_active_per_user ON meal_plans(user_id) WHERE is_active;
+
+CREATE TABLE IF NOT EXISTS meal_plan_days (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  meal_plan_id UUID REFERENCES meal_plans(id) ON DELETE CASCADE,
+  day_of_week TEXT NOT NULL CHECK (day_of_week IN ('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday')),
+  dinner_needed BOOLEAN NOT NULL DEFAULT TRUE,
+  UNIQUE(meal_plan_id, day_of_week)
 );
 
 CREATE TABLE IF NOT EXISTS meal_plan_items (
@@ -133,4 +145,5 @@ CREATE INDEX IF NOT EXISTS idx_recipes_dish_type ON recipes(dish_type);
 CREATE INDEX IF NOT EXISTS idx_ingredients_recipe_id ON ingredients(recipe_id);
 CREATE INDEX IF NOT EXISTS idx_instructions_recipe_id ON instructions(recipe_id);
 CREATE INDEX IF NOT EXISTS idx_meal_plan_items_plan_id ON meal_plan_items(meal_plan_id);
+CREATE INDEX IF NOT EXISTS idx_meal_plan_days_plan_id ON meal_plan_days(meal_plan_id);
 CREATE INDEX IF NOT EXISTS idx_shopping_list_items_list_id ON shopping_list_items(shopping_list_id);
