@@ -1,5 +1,5 @@
+import { RotateCcw, RefreshCw, Save } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { RefreshCw, Save } from 'lucide-react';
 import { api, getMonday } from '../lib/api';
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
@@ -50,6 +50,18 @@ export function WeeklyPlanner({ recipes, onGenerated }) {
     setSaving(false);
   }
 
+  async function clearPlan() {
+    const confirmed = window.confirm('Clear every main dish and side for this week?');
+    if (!confirmed) return;
+
+    setSaving(true);
+    setItems([]);
+    await api.saveMealPlanItems(weekStart, []);
+    const summary = await api.getWeeklyNutrition(weekStart);
+    setNutrition(summary);
+    setSaving(false);
+  }
+
   async function generateShoppingList() {
     await savePlan();
     await api.generateShoppingList(weekStart);
@@ -90,6 +102,7 @@ export function WeeklyPlanner({ recipes, onGenerated }) {
 
       <div className="action-row">
         <button className="primary-action" onClick={savePlan} disabled={saving}><Save size={18} /> Save plan</button>
+        <button onClick={clearPlan} disabled={saving || !items.length}><RotateCcw size={18} /> Clear plan</button>
         <button onClick={generateShoppingList} disabled={saving}><RefreshCw size={18} /> Generate shopping list</button>
       </div>
 
