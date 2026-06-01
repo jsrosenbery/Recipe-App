@@ -20,18 +20,18 @@ mealPlansRouter.get('/active/current', async (_req, res, next) => {
   }
 });
 
-mealPlansRouter.post('/active/:weekStart', async (req, res, next) => {
+mealPlansRouter.post('/active/items', async (req, res, next) => {
   try {
-    res.json(await setActiveMealPlan(req.params.weekStart));
+    if (!req.body.recipe_id) return res.status(400).json({ error: 'recipe_id is required' });
+    res.status(201).json(await addRecipeToActivePlan(req.body.recipe_id));
   } catch (error) {
     next(error);
   }
 });
 
-mealPlansRouter.post('/active/items', async (req, res, next) => {
+mealPlansRouter.post('/active/:weekStart', async (req, res, next) => {
   try {
-    if (!req.body.recipe_id) return res.status(400).json({ error: 'recipe_id is required' });
-    res.status(201).json(await addRecipeToActivePlan(req.body.recipe_id));
+    res.json(await setActiveMealPlan(req.params.weekStart));
   } catch (error) {
     next(error);
   }
