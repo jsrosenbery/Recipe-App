@@ -9,8 +9,9 @@ export async function generateShoppingList(weekStart) {
   const ingredients = await query(
     `SELECT i.*
      FROM meal_plan_items mpi
+     JOIN meal_plan_days mpd ON mpd.meal_plan_id = mpi.meal_plan_id AND mpd.day_of_week = mpi.day_of_week
      JOIN ingredients i ON i.recipe_id = mpi.recipe_id
-     WHERE mpi.meal_plan_id = $1`,
+     WHERE mpi.meal_plan_id = $1 AND mpd.dinner_needed = TRUE`,
     [plan.id]
   );
   const combined = combineShoppingItems(ingredients.rows);
