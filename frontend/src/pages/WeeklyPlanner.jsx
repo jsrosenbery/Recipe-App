@@ -9,6 +9,13 @@ const MEALS = [
   { key: 'side_2', label: 'Side 2' }
 ];
 
+function isRecipeAllowedForSlot(recipe, mealKey) {
+  const dishType = recipe.dish_type || 'main';
+  if (dishType === 'both') return true;
+  if (mealKey === 'main') return dishType === 'main';
+  return dishType === 'side';
+}
+
 export function WeeklyPlanner({ recipes, onGenerated }) {
   const [weekStart, setWeekStart] = useState(getMonday());
   const [items, setItems] = useState([]);
@@ -89,10 +96,17 @@ export function WeeklyPlanner({ recipes, onGenerated }) {
             <strong className="day-label">{day}</strong>
             {MEALS.map((meal) => {
               const item = itemMap.get(`${day}-${meal.key}`);
+              const selectedRecipe = recipes.find((recipe) => recipe.id === item?.recipe_id);
+              const options = recipes.filter((recipe) => isRecipeAllowedForSlot(recipe, meal.key) || recipe.id === item?.recipe_id);
               return (
                 <select key={meal.key} value={item?.recipe_id || ''} onChange={(event) => updateSlot(day, meal.key, event.target.value)}>
                   <option value="">Empty</option>
-                  {recipes.map((recipe) => <option key={recipe.id} value={recipe.id}>{recipe.title}</option>)}
+                  {selectedRecipe && !isRecipeAllowedForSlot(selectedRecipe, meal.key) && (
+                    <option value={selectedRecipe.id}>{selectedRecipe.title} (category mismatch)</option>
+                  )}
+                  {options.filter((recipe) => recipe.id !== selectedRecipe?.id || isRecipeAllowedForSlot(recipe, meal.key)).map((recipe) => (
+                    <option key={recipe.id} value={recipe.id}>{recipe.title}</option>
+                  ))}
                 </select>
               );
             })}
