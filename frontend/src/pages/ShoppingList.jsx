@@ -8,10 +8,14 @@ function dateOnly(value) {
   return String(value || getMonday()).slice(0, 10);
 }
 
-export function ShoppingList() {
-  const [weekStart, setWeekStart] = useState(getMonday());
+export function ShoppingList({ initialWeekStart }) {
+  const [weekStart, setWeekStart] = useState(dateOnly(initialWeekStart));
   const [list, setList] = useState(emptyList);
   const [manualItem, setManualItem] = useState('');
+
+  useEffect(() => {
+    setWeekStart(dateOnly(initialWeekStart));
+  }, [initialWeekStart]);
 
   useEffect(() => {
     loadList();
