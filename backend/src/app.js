@@ -54,7 +54,7 @@ app.use((req, res) => {
 
 app.use((error, _req, res, _next) => {
   console.error(error);
-  res.status(500).json({
+  res.status(error.status || 500).json({
     error: error.message || 'Unexpected server error'
   });
 });
