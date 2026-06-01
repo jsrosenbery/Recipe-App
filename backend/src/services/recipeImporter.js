@@ -52,24 +52,60 @@ function imageFromSchema(image) {
   return first?.url || first?.contentUrl || null;
 }
 
-function formatDuration(value) {
+function durationToMinutes(value) {
   if (!value) return null;
   const text = String(value).trim();
   const iso = text.match(/^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/i);
-  if (!iso) return text;
+  if (iso) {
+    const days = Number(iso[1] || 0);
+    const hours = Number(iso[2] || 0);
+    const minutes = Number(iso[3] || 0);
+    const seconds = Number(iso[4] || 0);
+    const total = days * 1440 + hours * 60 + minutes + Math.ceil(seconds / 60);
+    return total || null;
+  }
 
-  const days = Number(iso[1] || 0);
-  const hours = Number(iso[2] || 0);
-  const minutes = Number(iso[3] || 0);
-  const seconds = Number(iso[4] || 0);
+  const hours = text.match(/(\d+(?:\.\d+)?)\s*(?:hours?|hrs?|h)\b/i);
+  const minutes = text.match(/(\d+(?:\.\d+)?)\s*(?:minutes?|mins?|m)\b/i);
+  const total = Number(hours?.[1] || 0) * 60 + Number(minutes?.[1] || 0);
+  return total || null;
+}
+
+function formatMinutes(totalMinutes) {
+  if (!totalMinutes) return null;
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
   const parts = [];
-
-  if (days) parts.push(`${days} ${days === 1 ? 'day' : 'days'}`);
   if (hours) parts.push(`${hours} hr`);
   if (minutes) parts.push(`${minutes} min`);
-  if (seconds && !parts.length) parts.push(`${seconds} sec`);
+  return parts.join(' ');
+}
 
-  return parts.length ? parts.join(' ') : null;
+function formatDuration(value) {
+  const minutes = durationToMinutes(value);
+  return minutes ? formatMinutes(minutes) : null;
+}
+
+function inferCookTime(schema, instructions) {
+  const cookMinutes = durationToMinutes(schema.cookTime);
+  if (cookMinutes) return formatMinutes(cookMinutes);
+
+  const prepMinutes = durationToMinutes(schema.prepTime);
+  const totalMinutes = durationToMinutes(schema.totalTime);
+  if (totalMinutes && prepMinutes && totalMinutes > prepMinutes) {
+    return formatMinutes(totalMinutes - prepMinutes);
+  }
+
+  const instructionMinutes = instructions
+    .flatMap((instruction) => [...String(instruction).matchAll(/(\d+)\s*(?:to|-)?\s*(\d+)?\s*minutes?/gi)])
+    .map((match) => Number(match[2] || match[1]))
+    .filter(Boolean);
+
+  if (instructionMinutes.length) {
+    return formatMinutes(instructionMinutes.reduce((sum, minutes) => sum + minutes, 0));
+  }
+
+  return null;
 }
 
 function fallbackTitleFromUrl(url) {
@@ -140,16 +176,18 @@ export async function importRecipeFromUrl(url) {
     return fallbackDraft(parsedUrl.toString(), 'Recipe schema was not found. Please add ingredients and instructions manually.', document);
   }
 
+  const instructions = asArray(schema.recipeInstructions).map(textFromInstruction).filter(Boolean);
+
   return {
     title: schema.name || document.title || fallbackTitleFromUrl(parsedUrl.toString()),
     source_url: parsedUrl.toString(),
     image_url: imageFromSchema(schema.image),
     servings: Array.isArray(schema.recipeYield) ? schema.recipeYield[0] : schema.recipeYield || null,
     prep_time: formatDuration(schema.prepTime),
-    cook_time: formatDuration(schema.cookTime),
+    cook_time: inferCookTime(schema, instructions),
     total_time: formatDuration(schema.totalTime),
     ingredients: asArray(schema.recipeIngredient).filter(Boolean),
-    instructions: asArray(schema.recipeInstructions).map(textFromInstruction).filter(Boolean),
+    instructions,
     tags: [...asArray(schema.recipeCategory), ...asArray(schema.recipeCuisine)].filter(Boolean),
     notes: '',
     nutrition: normalizeNutrition(schema.nutrition),
