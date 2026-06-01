@@ -2,9 +2,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { Plus, Printer, RefreshCw, Trash2 } from 'lucide-react';
 import { api, getMonday } from '../lib/api';
 
+const emptyList = { items: [] };
+
+function dateOnly(value) {
+  return String(value || getMonday()).slice(0, 10);
+}
+
 export function ShoppingList() {
   const [weekStart, setWeekStart] = useState(getMonday());
-  const [list, setList] = useState({ items: [] });
+  const [list, setList] = useState(emptyList);
   const [manualItem, setManualItem] = useState('');
 
   useEffect(() => {
@@ -12,11 +18,11 @@ export function ShoppingList() {
   }, [weekStart]);
 
   async function loadList() {
-    setList(await api.getShoppingList(weekStart));
+    setList((await api.getShoppingList(weekStart)) || emptyList);
   }
 
   async function generate() {
-    setList(await api.generateShoppingList(weekStart));
+    setList((await api.generateShoppingList(weekStart)) || emptyList);
   }
 
   async function toggle(item) {
@@ -36,13 +42,14 @@ export function ShoppingList() {
     loadList();
   }
 
+  const items = list?.items || [];
   const grouped = useMemo(() => {
-    return (list.items || []).reduce((acc, item) => {
+    return items.reduce((acc, item) => {
       acc[item.category] ||= [];
       acc[item.category].push(item);
       return acc;
     }, {});
-  }, [list.items]);
+  }, [items]);
 
   return (
     <section className="page shopping-page">
@@ -53,7 +60,7 @@ export function ShoppingList() {
         </div>
         <label className="week-picker">
           Week of
-          <input type="date" value={weekStart} onChange={(event) => setWeekStart(event.target.value)} />
+          <input type="date" value={dateOnly(weekStart)} onChange={(event) => setWeekStart(dateOnly(event.target.value))} />
         </label>
       </header>
 
@@ -62,7 +69,7 @@ export function ShoppingList() {
         <button onClick={() => window.print()}><Printer size={18} /> Print</button>
       </div>
 
-      {list.id && (
+      {list?.id && (
         <div className="import-bar">
           <input placeholder="Add an item" value={manualItem} onChange={(event) => setManualItem(event.target.value)} />
           <button onClick={addManualItem}><Plus size={18} /> Add</button>
@@ -70,10 +77,10 @@ export function ShoppingList() {
       )}
 
       <div className="shopping-groups">
-        {Object.entries(grouped).map(([category, items]) => (
+        {Object.entries(grouped).map(([category, categoryItems]) => (
           <section className="shopping-group" key={category}>
             <h2>{category}</h2>
-            {items.map((item) => (
+            {categoryItems.map((item) => (
               <div className="shopping-item" key={item.id}>
                 <label>
                   <input type="checkbox" checked={item.checked} onChange={() => toggle(item)} />
@@ -86,7 +93,7 @@ export function ShoppingList() {
         ))}
       </div>
 
-      {!list.items?.length && (
+      {!items.length && (
         <div className="empty-state">
           <h2>No shopping list yet</h2>
           <p>Generate one from your weekly meal plan, then add or check off items here.</p>
