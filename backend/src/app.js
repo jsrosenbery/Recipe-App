@@ -11,10 +11,29 @@ import { nutritionRouter } from './routes/nutrition.js';
 
 export const app = express();
 
+const configuredOrigins = config.frontendOrigin
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+function isAllowedOrigin(origin) {
+  if (!origin) return true;
+  if (configuredOrigins.includes(origin)) return true;
+
+  try {
+    const hostname = new URL(origin).hostname;
+    return hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.vercel.app');
+  } catch {
+    return false;
+  }
+}
+
 app.use(helmet());
 app.use(cors({
-  origin: config.frontendOrigin.split(',').map((origin) => origin.trim()),
-  credentials: true
+  origin(origin, callback) {
+    if (isAllowedOrigin(origin)) return callback(null, true);
+    return callback(new Error(`CORS blocked origin: ${origin}`));
+  }
 }));
 app.use(express.json({ limit: '1mb' }));
 app.use(morgan(config.nodeEnv === 'production' ? 'combined' : 'dev'));
