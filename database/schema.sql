@@ -91,11 +91,15 @@ CREATE TABLE IF NOT EXISTS meal_plan_items (
   meal_plan_id UUID REFERENCES meal_plans(id) ON DELETE CASCADE,
   recipe_id UUID REFERENCES recipes(id) ON DELETE SET NULL,
   day_of_week TEXT NOT NULL CHECK (day_of_week IN ('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday')),
-  meal_type TEXT NOT NULL CHECK (meal_type IN ('breakfast', 'lunch', 'dinner', 'snack')),
+  meal_type TEXT NOT NULL,
   servings NUMERIC,
   notes TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE meal_plan_items DROP CONSTRAINT IF EXISTS meal_plan_items_meal_type_check;
+ALTER TABLE meal_plan_items ADD CONSTRAINT meal_plan_items_meal_type_check CHECK (meal_type IN ('main', 'side_1', 'side_2'));
+DELETE FROM meal_plan_items WHERE meal_type NOT IN ('main', 'side_1', 'side_2');
 
 CREATE TABLE IF NOT EXISTS shopping_lists (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
