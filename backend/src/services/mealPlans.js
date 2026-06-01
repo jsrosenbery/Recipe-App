@@ -4,6 +4,16 @@ import { getDefaultUserId } from './defaultUser.js';
 export const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 export const MEAL_TYPES = ['main', 'side_1', 'side_2'];
 
+function toDateOnly(value) {
+  if (!value) return value;
+  if (typeof value === 'string') return value.slice(0, 10);
+  return value.toISOString().slice(0, 10);
+}
+
+function normalizePlanRow(plan) {
+  return { ...plan, week_start: toDateOnly(plan.week_start) };
+}
+
 async function ensureMealPlanDays(clientOrPool, mealPlanId) {
   for (const day of DAYS) {
     await clientOrPool.query(
@@ -22,10 +32,10 @@ export async function getOrCreateMealPlan(weekStart) {
      VALUES ($1, $2, $3)
      ON CONFLICT (user_id, week_start) DO UPDATE SET updated_at = NOW()
      RETURNING *`,
-    [userId, weekStart, `Week of ${weekStart}`]
+    [userId, toDateOnly(weekStart), `Week of ${toDateOnly(weekStart)}`]
   );
   await ensureMealPlanDays({ query }, result.rows[0].id);
-  return result.rows[0];
+  return normalizePlanRow(result.rows[0]);
 }
 
 export async function getActiveMealPlan() {
@@ -38,21 +48,23 @@ export async function getActiveMealPlan() {
     [userId]
   );
   if (!result.rows[0]) return null;
-  return getMealPlan(result.rows[0].week_start);
+  return getMealPlan(toDateOnly(result.rows[0].week_start));
 }
 
 export async function setActiveMealPlan(weekStart) {
   const userId = await getDefaultUserId();
-  const plan = await getOrCreateMealPlan(weekStart);
+  const dateOnly = toDateOnly(weekStart);
+  const plan = await getOrCreateMealPlan(dateOnly);
   await withTransaction(async (client) => {
     await client.query('UPDATE meal_plans SET is_active = FALSE WHERE user_id = $1', [userId]);
     await client.query('UPDATE meal_plans SET is_active = TRUE, updated_at = NOW() WHERE id = $1', [plan.id]);
   });
-  return getMealPlan(weekStart);
+  return getMealPlan(dateOnly);
 }
 
 export async function getMealPlan(weekStart) {
-  const plan = await getOrCreateMealPlan(weekStart);
+  const dateOnly = toDateOnly(weekStart);
+  const plan = await getOrCreateMealPlan(dateOnly);
   const [items, days] = await Promise.all([
     query(
       `SELECT mpi.*, r.title, r.image_url, r.dish_type
@@ -119,7 +131,8 @@ export async function addRecipeToActivePlan(recipeId) {
 }
 
 export async function replaceMealPlanItems(weekStart, items) {
-  const plan = await getOrCreateMealPlan(weekStart);
+  const dateOnly = toDateOnly(weekStart);
+  const plan = await getOrCreateMealPlan(dateOnly);
   await withTransaction(async (client) => {
     await client.query('DELETE FROM meal_plan_items WHERE meal_plan_id = $1', [plan.id]);
     for (const item of items) {
@@ -130,7 +143,7 @@ export async function replaceMealPlanItems(weekStart, items) {
       );
     }
   });
-  return getMealPlan(weekStart);
+  return getMealPlan(dateOnly);
 }
 
 export async function updateDinnerNeeded(weekStart, dayOfWeek, dinnerNeeded) {
@@ -142,7 +155,7 @@ export async function updateDinnerNeeded(weekStart, dayOfWeek, dinnerNeeded) {
      DO UPDATE SET dinner_needed = EXCLUDED.dinner_needed`,
     [plan.id, dayOfWeek, Boolean(dinnerNeeded)]
   );
-  return getMealPlan(weekStart);
+  return getMealPlan(plan.week_start);
 }
 
 export async function removeMealPlanItem(itemId) {
