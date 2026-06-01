@@ -25,7 +25,7 @@ export function RecipeLibrary({ recipes, activePlan, notice, onEdit, onAdd, onDe
             {recipe.image_url ? <img src={recipe.image_url} alt="" /> : <div className="image-placeholder" />}
             <div>
               <h2>{recipe.title}</h2>
-              <p className="meta"><Clock size={15} /> {recipe.total_time || recipe.prep_time || 'Time not set'} · {dishLabel(recipe.dish_type)}</p>
+              <p className="meta"><Clock size={15} /> {recipe.total_time || recipe.prep_time || 'Time not set'} - {dishLabel(recipe.dish_type)}</p>
               <div className="tag-row">
                 {(recipe.tags || []).slice(0, 4).map((tag) => <span key={tag}>{tag}</span>)}
               </div>
