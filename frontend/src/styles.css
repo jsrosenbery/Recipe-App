@@ -164,6 +164,15 @@ main {
   font-weight: 800;
 }
 
+.danger-action {
+  border-color: #d9b3a5;
+  color: #8a3f18;
+}
+
+.danger-action:hover {
+  border-color: #b4532a;
+}
+
 .recipe-grid {
   display: grid;
   gap: 1rem;
@@ -328,14 +337,15 @@ main {
   background: #ffffff;
   border: 1px solid #d7e1dd;
   border-radius: 8px;
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: 110px repeat(4, minmax(160px, 1fr));
   overflow: auto;
   padding: 1rem;
 }
 
-.planner-grid {
-  display: grid;
-  gap: 0.65rem;
-  grid-template-columns: 110px repeat(4, minmax(160px, 1fr));
+.dinner-planner-grid {
+  grid-template-columns: 110px repeat(3, minmax(180px, 1fr));
 }
 
 .planner-row {
@@ -454,8 +464,9 @@ main {
     flex-direction: column;
   }
 
-  .planner-grid {
-    grid-template-columns: 90px repeat(4, minmax(150px, 1fr));
+  .planner-grid,
+  .dinner-planner-grid {
+    grid-template-columns: 90px repeat(3, minmax(150px, 1fr));
   }
 
   .scaler-panel {
