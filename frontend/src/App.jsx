@@ -69,6 +69,7 @@ export default function App() {
     <RecipeLibrary
       recipes={recipes}
       activePlan={activePlan}
+      notice={plannerNotice}
       onAdd={() => setActivePage('add')}
       onEdit={(id) => { setEditingRecipeId(id); setActivePage('edit'); }}
       onDelete={handleDelete}
@@ -80,7 +81,6 @@ export default function App() {
   if (activePage === 'edit') page = <EditRecipe recipeId={editingRecipeId} onSaved={handleSaved} />;
   if (activePage === 'planner') page = (
     <WeeklyPlanner
-      recipes={recipes}
       activePlan={activePlan}
       notice={plannerNotice}
       onNotice={setPlannerNotice}
