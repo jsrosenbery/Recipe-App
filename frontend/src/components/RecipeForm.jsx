@@ -19,6 +19,7 @@ export const emptyRecipe = {
   image_url: '',
   servings: '',
   dish_type: 'main',
+  rating: '',
   prep_time: '',
   cook_time: '',
   total_time: '',
@@ -141,6 +142,17 @@ export function RecipeForm({ recipe, setRecipe, onSave, saving }) {
             <option value="main">Main Dish</option>
             <option value="side">Side Dish</option>
             <option value="both">Main or Side</option>
+          </select>
+        </label>
+        <label>
+          Rating
+          <select value={recipe.rating || ''} onChange={(event) => updateField('rating', event.target.value)}>
+            <option value="">Unrated</option>
+            <option value="1">1 / 5</option>
+            <option value="2">2 / 5</option>
+            <option value="3">3 / 5</option>
+            <option value="4">4 / 5</option>
+            <option value="5">5 / 5</option>
           </select>
         </label>
         <label>
