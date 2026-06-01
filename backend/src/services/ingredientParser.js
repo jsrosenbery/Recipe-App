@@ -1,20 +1,20 @@
 const CATEGORIES = [
   { name: 'produce', terms: ['onion', 'garlic', 'tomato', 'pepper', 'lettuce', 'spinach', 'carrot', 'potato', 'cilantro', 'parsley', 'lemon', 'lime', 'apple', 'banana', 'broccoli', 'shallot', 'scallion', 'celery', 'mushroom', 'zucchini', 'squash', 'cucumber', 'avocado', 'corn', 'jalapeno', 'ginger'] },
   { name: 'canned/jarred goods', terms: ['canned', 'can ', 'jar', 'tomato paste', 'broth', 'stock', 'olives', 'salsa', 'marinara', 'beans', 'chiles', 'pickles'] },
-  { name: 'meat/seafood', terms: ['chicken', 'beef', 'pork', 'turkey', 'salmon', 'shrimp', 'fish', 'bacon', 'sausage', 'steak', 'sirloin', 'ribeye', 'chuck', 'roast', 'ribs', 'brisket', 'lamb', 'veal', 'ham', 'prosciutto', 'pepperoni', 'meatball', 'meatballs', 'thigh', 'thighs', 'breast', 'breasts', 'drumstick', 'drumsticks', 'wing', 'wings', 'tenderloin', 'loin', 'cutlet', 'cutlets', 'cod', 'halibut', 'tilapia', 'tuna', 'mahi', 'bass', 'trout', 'crab', 'lobster', 'scallop', 'scallops', 'clam', 'clams', 'mussel', 'mussels'] },
-  { name: 'dairy', terms: ['milk', 'cheese', 'butter', 'cream', 'yogurt', 'egg', 'eggs', 'mozzarella', 'cheddar', 'parmesan', 'sour cream', 'half-and-half'] },
-  { name: 'dry goods', terms: ['rice', 'pasta', 'flour', 'sugar', 'oats', 'quinoa', 'lentils', 'beans', 'bread crumbs', 'breadcrumbs', 'noodles', 'couscous', 'cornmeal'] },
-  { name: 'frozen', terms: ['frozen'] },
+  { name: 'meat/seafood', terms: ['chicken', 'beef', 'pork', 'turkey', 'salmon', 'shrimp', 'fish', 'bacon', 'sausage', 'steak', 'steaks', 'sirloin', 'ribeye', 'chuck', 'roast', 'ribs', 'brisket', 'lamb', 'veal', 'ham', 'prosciutto', 'pepperoni', 'meatball', 'meatballs', 'thigh', 'thighs', 'breast', 'breasts', 'drumstick', 'drumsticks', 'wing', 'wings', 'tenderloin', 'loin', 'cutlet', 'cutlets', 'cod', 'halibut', 'tilapia', 'tuna', 'mahi', 'bass', 'trout', 'crab', 'lobster', 'scallop', 'scallops', 'clam', 'clams', 'mussel', 'mussels'] },
+  { name: 'dairy', terms: ['milk', 'cheese', 'butter', 'cream', 'yogurt', 'yogurt', 'egg', 'eggs', 'mozzarella', 'cheddar', 'parmesan', 'pecorino', 'romano', 'sour cream', 'half-and-half'] },
+  { name: 'dry goods', terms: ['rice', 'pasta', 'flour', 'sugar', 'oats', 'quinoa', 'lentils', 'beans', 'bread crumbs', 'breadcrumbs', 'noodles', 'couscous', 'cornmeal', 'stuffing mix', 'spaghetti', 'ravioli'] },
+  { name: 'frozen', terms: ['frozen peas', 'frozen corn', 'frozen'] },
   { name: 'bakery', terms: ['bread', 'tortilla', 'bun', 'buns', 'roll', 'rolls', 'bagel', 'pita', 'naan'] },
-  { name: 'spices/seasonings', terms: ['salt', 'pepper', 'cumin', 'paprika', 'oregano', 'basil', 'thyme', 'cinnamon', 'chili powder', 'garlic powder', 'onion powder', 'cayenne', 'seasoning'] },
-  { name: 'condiments', terms: ['mustard', 'ketchup', 'mayonnaise', 'mayo', 'soy sauce', 'vinegar', 'hot sauce', 'oil', 'worcestershire', 'bbq sauce', 'barbecue sauce', 'honey'] }
+  { name: 'spices/seasonings', terms: ['salt', 'pepper', 'peppercorns', 'cumin', 'paprika', 'oregano', 'basil', 'thyme', 'rosemary', 'turmeric', 'cinnamon', 'chili powder', 'garlic powder', 'onion powder', 'cayenne', 'seasoning'] },
+  { name: 'condiments', terms: ['mustard', 'dijon', 'ketchup', 'mayonnaise', 'mayo', 'soy sauce', 'vinegar', 'hot sauce', 'oil', 'olive oil', 'cooking spray', 'worcestershire', 'bbq sauce', 'barbecue sauce', 'honey'] }
 ];
 
 const UNITS = [
-  'cup', 'cups', 'tbsp', 'tablespoon', 'tablespoons', 'tsp', 'teaspoon', 'teaspoons',
+  'c', 'cup', 'cups', 'tbsp', 'tablespoon', 'tablespoons', 'tsp', 'teaspoon', 'teaspoons',
   'oz', 'ounce', 'ounces', 'lb', 'lbs', 'pound', 'pounds', 'g', 'gram', 'grams',
   'kg', 'ml', 'l', 'clove', 'cloves', 'can', 'cans', 'package', 'packages', 'pkg',
-  'bag', 'bags', 'box', 'boxes', 'slice', 'slices', 'piece', 'pieces', 'stalk', 'stalks'
+  'bag', 'bags', 'box', 'boxes', 'slice', 'slices', 'piece', 'pieces', 'stalk', 'stalks', 'sprig', 'sprigs', 'stick', 'sticks'
 ];
 
 const FRACTIONS = {
@@ -36,9 +36,10 @@ const UNICODE_FRACTIONS = {
 };
 
 const PREP_WORDS = new Set([
-  'boneless', 'skinless', 'fresh', 'frozen', 'large', 'small', 'medium', 'thinly', 'finely',
-  'roughly', 'chopped', 'diced', 'sliced', 'minced', 'grated', 'shredded', 'crushed',
-  'divided', 'optional', 'trimmed', 'cooked', 'uncooked', 'raw', 'lean', 'extra-lean'
+  'boneless', 'skinless', 'fresh', 'frozen', 'refrigerated', 'large', 'small', 'medium',
+  'thinly', 'finely', 'roughly', 'chopped', 'diced', 'sliced', 'minced', 'grated',
+  'shredded', 'crushed', 'divided', 'optional', 'trimmed', 'cooked', 'uncooked', 'raw',
+  'lean', 'extra-lean', 'grounded', 'ground', 'whole', 'plain', 'salted', 'unsalted'
 ]);
 
 function normalizeText(text = '') {
@@ -69,11 +70,12 @@ export function categorizeIngredient(text = '') {
 
 function parseQuantityToken(token) {
   if (!token) return null;
-  if (FRACTIONS[token]) return FRACTIONS[token];
-  if (/^\d+(\.\d+)?$/.test(token)) return Number(token);
-  if (/^\d+-\d+$/.test(token)) return null;
-  if (/^\d+\/\d+$/.test(token)) {
-    const [top, bottom] = token.split('/').map(Number);
+  const cleaned = token.replace(/[.,]/g, '');
+  if (FRACTIONS[cleaned]) return FRACTIONS[cleaned];
+  if (/^\d+(\.\d+)?$/.test(cleaned)) return Number(cleaned);
+  if (/^\d+-\d+$/.test(cleaned)) return null;
+  if (/^\d+\/\d+$/.test(cleaned)) {
+    const [top, bottom] = cleaned.split('/').map(Number);
     return bottom ? top / bottom : null;
   }
   return null;
@@ -84,7 +86,7 @@ function parseQuantity(tokens) {
   if (first === null) return { quantity: null, consumed: 0 };
 
   const second = parseQuantityToken(tokens[1]);
-  if (/^\d+$/.test(tokens[0]) && /^\d+\/\d+$/.test(tokens[1] || '') && second !== null) {
+  if (/^\d+$/.test(tokens[0]) && /^\d+\/\d+$/.test((tokens[1] || '').replace(/[.,]/g, '')) && second !== null) {
     return { quantity: first + second, consumed: 2 };
   }
 
@@ -131,7 +133,7 @@ export function combineShoppingItems(ingredients) {
 
   for (const ingredient of ingredients) {
     const parsed = parseIngredient(ingredient.raw_text || ingredient.rawText || ingredient);
-    const category = ingredient.category && ingredient.category !== 'other' ? ingredient.category : parsed.category;
+    const category = parsed.category;
     const unitKey = parsed.unit || '';
     const key = `${parsed.name.toLowerCase()}|${unitKey}|${category}`;
     const current = grouped.get(key);
