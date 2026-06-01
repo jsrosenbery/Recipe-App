@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: recipe-planner-api
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: recipe-planner-db
+          property: connectionString
+      - key: FRONTEND_ORIGIN
+        sync: false
+      - key: NUTRITION_API_KEY
+        sync: false
+
+databases:
+  - name: recipe-planner-db
+    databaseName: recipe_planner
+    user: recipe_planner

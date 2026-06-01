@@ -26,11 +26,11 @@ The backend owns recipe URL importing, database access, shopping list generation
 
 ```txt
 .
-|-- backend/          Express API for Render
-|-- database/         PostgreSQL schema
-|-- frontend/         React app for Vercel
-|-- package.json      Workspace scripts
-`-- README.md
+├── backend/          Express API for Render
+├── database/         PostgreSQL schema
+├── frontend/         React app for Vercel
+├── package.json      Workspace scripts
+└── README.md
 ```
 
 ## Local Setup
@@ -118,7 +118,19 @@ Nutrition:
 
 ## Database
 
-The schema is in `database/schema.sql` and includes users, recipes, ingredients, instructions, meal plans, shopping lists, nutrition estimates, and tags.
+The schema is in `database/schema.sql` and includes:
+
+- `users`
+- `recipes`
+- `ingredients`
+- `instructions`
+- `meal_plans`
+- `meal_plan_items`
+- `shopping_lists`
+- `shopping_list_items`
+- `nutrition_estimates`
+- `tags`
+- `recipe_tags`
 
 The app creates a default single user for now. The schema is ready for real authentication later.
 
@@ -164,6 +176,18 @@ Output Directory: dist
 
 ```env
 VITE_API_BASE_URL=https://your-render-api.onrender.com
+```
+
+## GitHub Setup
+
+This repository is intended for `jsrosenbery/Recipe-App`.
+
+After the files are committed and pushed:
+
+```bash
+git remote add origin https://github.com/jsrosenbery/Recipe-App.git
+git branch -M main
+git push -u origin main
 ```
 
 ## Nutrition Integration Notes
