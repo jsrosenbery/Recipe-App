@@ -18,6 +18,7 @@ export const emptyRecipe = {
   source_url: '',
   image_url: '',
   servings: '',
+  dish_type: 'main',
   prep_time: '',
   cook_time: '',
   total_time: '',
@@ -133,6 +134,14 @@ export function RecipeForm({ recipe, setRecipe, onSave, saving }) {
         <label>
           Title
           <input value={recipe.title || ''} onChange={(event) => updateField('title', event.target.value)} required />
+        </label>
+        <label>
+          Dish Type
+          <select value={recipe.dish_type || 'main'} onChange={(event) => updateField('dish_type', event.target.value)}>
+            <option value="main">Main Dish</option>
+            <option value="side">Side Dish</option>
+            <option value="both">Main or Side</option>
+          </select>
         </label>
         <label>
           Source URL
