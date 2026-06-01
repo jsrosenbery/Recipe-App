@@ -11,8 +11,9 @@ nutritionRouter.get('/week/:weekStart', async (req, res, next) => {
     const result = await query(
       `SELECT ne.*
        FROM meal_plan_items mpi
+       JOIN meal_plan_days mpd ON mpd.meal_plan_id = mpi.meal_plan_id AND mpd.day_of_week = mpi.day_of_week
        JOIN nutrition_estimates ne ON ne.recipe_id = mpi.recipe_id AND ne.scope = 'recipe'
-       WHERE mpi.meal_plan_id = $1`,
+       WHERE mpi.meal_plan_id = $1 AND mpd.dinner_needed = TRUE`,
       [plan.id]
     );
     res.json(estimateWeeklyNutrition(result.rows.map((nutrition) => ({ nutrition }))));
