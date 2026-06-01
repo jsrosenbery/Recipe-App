@@ -8,12 +8,17 @@ import { ShoppingList } from './pages/ShoppingList';
 import { WeeklyPlanner } from './pages/WeeklyPlanner';
 import './styles.css';
 
+function dateOnly(value) {
+  return String(value || getMonday()).slice(0, 10);
+}
+
 export default function App() {
   const [activePage, setActivePage] = useState('library');
   const [recipes, setRecipes] = useState([]);
   const [editingRecipeId, setEditingRecipeId] = useState(null);
   const [activePlan, setActivePlan] = useState(null);
   const [plannerNotice, setPlannerNotice] = useState('');
+  const [shoppingWeekStart, setShoppingWeekStart] = useState(getMonday());
 
   async function refreshRecipes() {
     setRecipes(await api.listRecipes());
@@ -22,6 +27,7 @@ export default function App() {
   async function refreshActivePlan() {
     const newPlan = await api.setActiveMealPlan(getMonday());
     setActivePlan(newPlan);
+    setShoppingWeekStart(dateOnly(newPlan?.week_start));
     return newPlan;
   }
 
@@ -45,9 +51,10 @@ export default function App() {
   }
 
   async function handleSetActiveWeek(weekStart) {
-    const plan = await api.setActiveMealPlan(weekStart);
+    const plan = await api.setActiveMealPlan(dateOnly(weekStart));
     setActivePlan(plan);
-    setPlannerNotice(`Active week set to ${weekStart}.`);
+    setShoppingWeekStart(dateOnly(plan?.week_start));
+    setPlannerNotice(`Active week set to ${dateOnly(plan?.week_start)}.`);
     return plan;
   }
 
@@ -55,11 +62,17 @@ export default function App() {
     try {
       const plan = await api.addRecipeToActiveMealPlan(recipe.id);
       setActivePlan(plan);
+      setShoppingWeekStart(dateOnly(plan?.week_start));
       setPlannerNotice(`Added ${recipe.title} to the active week.`);
       setActivePage('planner');
     } catch (error) {
       setPlannerNotice(error.message);
     }
+  }
+
+  function handleGeneratedShoppingList(weekStart) {
+    setShoppingWeekStart(dateOnly(weekStart));
+    setActivePage('shopping');
   }
 
   let page = (
@@ -83,10 +96,10 @@ export default function App() {
       onNotice={setPlannerNotice}
       onSetActiveWeek={handleSetActiveWeek}
       onPlanChange={setActivePlan}
-      onGenerated={() => setActivePage('shopping')}
+      onGenerated={handleGeneratedShoppingList}
     />
   );
-  if (activePage === 'shopping') page = <ShoppingList />;
+  if (activePage === 'shopping') page = <ShoppingList initialWeekStart={shoppingWeekStart} />;
 
   return (
     <AppShell activePage={activePage} setActivePage={setActivePage}>
