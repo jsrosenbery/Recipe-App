@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS recipes (
   title TEXT NOT NULL,
   source_url TEXT,
   image_url TEXT,
-  servings NUMERIC,
+  servings TEXT,
   prep_time TEXT,
   cook_time TEXT,
   total_time TEXT,
@@ -31,6 +31,8 @@ CREATE TABLE IF NOT EXISTS recipes (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE recipes ALTER COLUMN servings TYPE TEXT USING servings::TEXT;
 
 CREATE TABLE IF NOT EXISTS recipe_tags (
   recipe_id UUID REFERENCES recipes(id) ON DELETE CASCADE,
