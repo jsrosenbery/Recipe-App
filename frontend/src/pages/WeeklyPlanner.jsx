@@ -24,8 +24,12 @@ function keyFor(day, meal) {
   return `${day}-${meal}`;
 }
 
+function dateOnly(value) {
+  return String(value || getMonday()).slice(0, 10);
+}
+
 function parseLocalDate(value) {
-  return new Date(`${value}T00:00:00`);
+  return new Date(`${dateOnly(value)}T00:00:00`);
 }
 
 function shiftWeek(value, amount) {
@@ -45,7 +49,7 @@ function formatDayDate(date) {
 }
 
 export function WeeklyPlanner({ activePlan, notice, onNotice, onSetActiveWeek, onPlanChange, onGenerated }) {
-  const [weekStart, setWeekStart] = useState(activePlan?.week_start || getMonday());
+  const [weekStart, setWeekStart] = useState(dateOnly(activePlan?.week_start));
   const [items, setItems] = useState(activePlan?.items || []);
   const [days, setDays] = useState(activePlan?.days || DAYS.map((day) => ({ day_of_week: day, dinner_needed: true })));
   const [nutrition, setNutrition] = useState(null);
@@ -53,10 +57,11 @@ export function WeeklyPlanner({ activePlan, notice, onNotice, onSetActiveWeek, o
 
   useEffect(() => {
     if (!activePlan) return;
-    setWeekStart(activePlan.week_start);
+    const planWeekStart = dateOnly(activePlan.week_start);
+    setWeekStart(planWeekStart);
     setItems(activePlan.items || []);
     setDays(activePlan.days || DAYS.map((day) => ({ day_of_week: day, dinner_needed: true })));
-    api.getWeeklyNutrition(activePlan.week_start).then(setNutrition).catch(() => setNutrition(null));
+    api.getWeeklyNutrition(planWeekStart).then(setNutrition).catch(() => setNutrition(null));
   }, [activePlan]);
 
   const itemMap = useMemo(() => {
@@ -72,10 +77,11 @@ export function WeeklyPlanner({ activePlan, notice, onNotice, onSetActiveWeek, o
   }, [days]);
 
   async function goToWeek(nextWeekStart) {
-    setWeekStart(nextWeekStart);
+    const nextDate = dateOnly(nextWeekStart);
+    setWeekStart(nextDate);
     setSaving(true);
     try {
-      const plan = await onSetActiveWeek(nextWeekStart);
+      const plan = await onSetActiveWeek(nextDate);
       onPlanChange(plan);
       return plan;
     } finally {
@@ -168,7 +174,7 @@ export function WeeklyPlanner({ activePlan, notice, onNotice, onSetActiveWeek, o
           </div>
           <label className="week-picker">
             Week of
-            <input type="date" value={weekStart} onChange={(event) => setWeekStart(event.target.value)} />
+            <input type="date" value={weekStart} onChange={(event) => setWeekStart(dateOnly(event.target.value))} />
           </label>
           <button className="primary-action" onClick={activateWeek} disabled={saving}>Mark active</button>
         </div>
