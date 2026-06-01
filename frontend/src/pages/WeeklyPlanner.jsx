@@ -3,7 +3,11 @@ import { RefreshCw, Save } from 'lucide-react';
 import { api, getMonday } from '../lib/api';
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-const MEALS = ['breakfast', 'lunch', 'dinner', 'snack'];
+const MEALS = [
+  { key: 'main', label: 'Main Dish' },
+  { key: 'side_1', label: 'Side 1' },
+  { key: 'side_2', label: 'Side 2' }
+];
 
 export function WeeklyPlanner({ recipes, onGenerated }) {
   const [weekStart, setWeekStart] = useState(getMonday());
@@ -12,7 +16,7 @@ export function WeeklyPlanner({ recipes, onGenerated }) {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    api.getMealPlan(weekStart).then((plan) => setItems(plan.items || []));
+    api.getMealPlan(weekStart).then((plan) => setItems((plan.items || []).filter((item) => MEALS.some((meal) => meal.key === item.meal_type))));
     api.getWeeklyNutrition(weekStart).then(setNutrition).catch(() => setNutrition(null));
   }, [weekStart]);
 
@@ -57,7 +61,7 @@ export function WeeklyPlanner({ recipes, onGenerated }) {
       <header className="page-header">
         <div>
           <p className="eyebrow">Weekly meal planner</p>
-          <h1>Plan the week</h1>
+          <h1>Plan dinners</h1>
         </div>
         <label className="week-picker">
           Week of
@@ -65,16 +69,16 @@ export function WeeklyPlanner({ recipes, onGenerated }) {
         </label>
       </header>
 
-      <div className="planner-grid">
+      <div className="planner-grid dinner-planner-grid">
         <div className="planner-head" />
-        {MEALS.map((meal) => <strong key={meal}>{meal}</strong>)}
+        {MEALS.map((meal) => <strong key={meal.key}>{meal.label}</strong>)}
         {DAYS.map((day) => (
           <div className="planner-row" key={day}>
             <strong className="day-label">{day}</strong>
             {MEALS.map((meal) => {
-              const item = itemMap.get(`${day}-${meal}`);
+              const item = itemMap.get(`${day}-${meal.key}`);
               return (
-                <select key={meal} value={item?.recipe_id || ''} onChange={(event) => updateSlot(day, meal, event.target.value)}>
+                <select key={meal.key} value={item?.recipe_id || ''} onChange={(event) => updateSlot(day, meal.key, event.target.value)}>
                   <option value="">Empty</option>
                   {recipes.map((recipe) => <option key={recipe.id} value={recipe.id}>{recipe.title}</option>)}
                 </select>
