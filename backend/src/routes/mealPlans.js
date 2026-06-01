@@ -37,6 +37,16 @@ mealPlansRouter.post('/active/items', async (req, res, next) => {
   }
 });
 
+mealPlansRouter.delete('/items/:itemId', async (req, res, next) => {
+  try {
+    const deleted = await removeMealPlanItem(req.params.itemId);
+    if (!deleted) return res.status(404).json({ error: 'Meal plan item not found' });
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+});
+
 mealPlansRouter.get('/:weekStart', async (req, res, next) => {
   try {
     res.json(await getMealPlan(req.params.weekStart));
@@ -64,16 +74,6 @@ mealPlansRouter.put('/:weekStart/items', async (req, res, next) => {
 mealPlansRouter.patch('/:weekStart/days/:dayOfWeek', async (req, res, next) => {
   try {
     res.json(await updateDinnerNeeded(req.params.weekStart, req.params.dayOfWeek, req.body.dinner_needed));
-  } catch (error) {
-    next(error);
-  }
-});
-
-mealPlansRouter.delete('/items/:itemId', async (req, res, next) => {
-  try {
-    const deleted = await removeMealPlanItem(req.params.itemId);
-    if (!deleted) return res.status(404).json({ error: 'Meal plan item not found' });
-    res.status(204).send();
   } catch (error) {
     next(error);
   }
