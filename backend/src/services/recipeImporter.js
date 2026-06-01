@@ -52,6 +52,26 @@ function imageFromSchema(image) {
   return first?.url || first?.contentUrl || null;
 }
 
+function formatDuration(value) {
+  if (!value) return null;
+  const text = String(value).trim();
+  const iso = text.match(/^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/i);
+  if (!iso) return text;
+
+  const days = Number(iso[1] || 0);
+  const hours = Number(iso[2] || 0);
+  const minutes = Number(iso[3] || 0);
+  const seconds = Number(iso[4] || 0);
+  const parts = [];
+
+  if (days) parts.push(`${days} ${days === 1 ? 'day' : 'days'}`);
+  if (hours) parts.push(`${hours} hr`);
+  if (minutes) parts.push(`${minutes} min`);
+  if (seconds && !parts.length) parts.push(`${seconds} sec`);
+
+  return parts.length ? parts.join(' ') : null;
+}
+
 function fallbackTitleFromUrl(url) {
   try {
     const parsed = new URL(url);
@@ -125,9 +145,9 @@ export async function importRecipeFromUrl(url) {
     source_url: parsedUrl.toString(),
     image_url: imageFromSchema(schema.image),
     servings: Array.isArray(schema.recipeYield) ? schema.recipeYield[0] : schema.recipeYield || null,
-    prep_time: schema.prepTime || null,
-    cook_time: schema.cookTime || null,
-    total_time: schema.totalTime || null,
+    prep_time: formatDuration(schema.prepTime),
+    cook_time: formatDuration(schema.cookTime),
+    total_time: formatDuration(schema.totalTime),
     ingredients: asArray(schema.recipeIngredient).filter(Boolean),
     instructions: asArray(schema.recipeInstructions).map(textFromInstruction).filter(Boolean),
     tags: [...asArray(schema.recipeCategory), ...asArray(schema.recipeCuisine)].filter(Boolean),
