@@ -50,10 +50,11 @@ function normalizeText(text = '') {
 }
 
 function termMatches(lower, term) {
-  const escaped = term.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  if (!escaped) return false;
+  const trimmed = term.trim();
+  if (!trimmed) return false;
   if (term.endsWith(' ')) return lower.includes(term);
-  return new RegExp(`(^|[^a-z])${escaped}([^a-z]|$)`).test(lower);
+  if (trimmed.includes(' ') || trimmed.includes('-')) return lower.includes(trimmed);
+  return lower.split(/[^a-z]+/).includes(trimmed);
 }
 
 export function categorizeIngredient(text = '') {
