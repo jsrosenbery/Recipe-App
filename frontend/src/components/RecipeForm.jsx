@@ -1,4 +1,5 @@
-import { Save } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Calculator, Save } from 'lucide-react';
 
 const emptyNutrition = {
   calories: '',
@@ -27,9 +28,66 @@ export const emptyRecipe = {
   nutrition: emptyNutrition
 };
 
+const FRACTIONS = {
+  '1/8': 0.125,
+  '1/4': 0.25,
+  '1/3': 0.333,
+  '1/2': 0.5,
+  '2/3': 0.667,
+  '3/4': 0.75
+};
+
+function parseServings(value) {
+  const match = String(value || '').match(/\d+(\.\d+)?/);
+  return match ? Number(match[0]) : null;
+}
+
+function parseQuantityParts(line) {
+  const trimmed = line.trim();
+  const mixed = trimmed.match(/^(\d+(?:\.\d+)?)\s+(\d+\/\d+)(\b.*)$/);
+  if (mixed) {
+    return {
+      quantity: Number(mixed[1]) + fractionToNumber(mixed[2]),
+      rest: mixed[3].trimStart()
+    };
+  }
+
+  const simple = trimmed.match(/^(\d+(?:\.\d+)?|\d+\/\d+)(\b.*)$/);
+  if (!simple) return null;
+
+  return {
+    quantity: fractionToNumber(simple[1]),
+    rest: simple[2].trimStart()
+  };
+}
+
+function fractionToNumber(value) {
+  if (FRACTIONS[value]) return FRACTIONS[value];
+  if (value.includes('/')) {
+    const [top, bottom] = value.split('/').map(Number);
+    return bottom ? top / bottom : Number(value);
+  }
+  return Number(value);
+}
+
+function formatQuantity(value) {
+  const rounded = Math.round(value * 100) / 100;
+  if (Number.isInteger(rounded)) return String(rounded);
+  return String(rounded).replace(/\.00$/, '');
+}
+
+function scaleIngredientLine(line, factor) {
+  const parsed = parseQuantityParts(line);
+  if (!parsed || !Number.isFinite(parsed.quantity)) return line;
+  return `${formatQuantity(parsed.quantity * factor)} ${parsed.rest}`.trim();
+}
+
 export function RecipeForm({ recipe, setRecipe, onSave, saving }) {
+  const [targetServings, setTargetServings] = useState('');
+  const [scaleMessage, setScaleMessage] = useState('');
   const ingredientsText = (recipe.ingredients || []).map((item) => item.raw_text || item.rawText || item).join('\n');
   const instructionsText = (recipe.instructions || []).map((item) => item.text || item).join('\n');
+  const currentServings = useMemo(() => parseServings(recipe.servings), [recipe.servings]);
 
   function updateField(field, value) {
     setRecipe({ ...recipe, [field]: value });
@@ -37,6 +95,26 @@ export function RecipeForm({ recipe, setRecipe, onSave, saving }) {
 
   function updateNutrition(field, value) {
     setRecipe({ ...recipe, nutrition: { ...(recipe.nutrition || emptyNutrition), [field]: value } });
+  }
+
+  function applyServingScale() {
+    const target = parseServings(targetServings);
+    if (!currentServings || !target) {
+      setScaleMessage('Set the current servings and cooking-for value first.');
+      return;
+    }
+
+    const factor = target / currentServings;
+    const scaledIngredients = ingredientsText
+      .split('\n')
+      .map((line) => scaleIngredientLine(line, factor));
+
+    setRecipe({
+      ...recipe,
+      servings: target,
+      ingredients: scaledIngredients
+    });
+    setScaleMessage(`Scaled from ${currentServings} to ${target} servings.`);
   }
 
   function submit(event) {
@@ -85,6 +163,18 @@ export function RecipeForm({ recipe, setRecipe, onSave, saving }) {
           <input value={Array.isArray(recipe.tags) ? recipe.tags.join(', ') : recipe.tags || ''} onChange={(event) => updateField('tags', event.target.value)} />
         </label>
       </div>
+
+      <section className="scaler-panel">
+        <label>
+          Cooking for
+          <input inputMode="decimal" placeholder="Target servings" value={targetServings} onChange={(event) => setTargetServings(event.target.value)} />
+        </label>
+        <button type="button" onClick={applyServingScale}>
+          <Calculator size={18} />
+          Scale ingredients
+        </button>
+        {scaleMessage && <p>{scaleMessage}</p>}
+      </section>
 
       <label>
         Ingredients
