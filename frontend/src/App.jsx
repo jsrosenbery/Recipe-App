@@ -27,7 +27,21 @@ export default function App() {
     setActivePage('library');
   }
 
-  let page = <RecipeLibrary recipes={recipes} onAdd={() => setActivePage('add')} onEdit={(id) => { setEditingRecipeId(id); setActivePage('edit'); }} />;
+  async function handleDelete(recipe) {
+    const confirmed = window.confirm(`Delete "${recipe.title}"? This also removes it from future meal plans and shopping lists.`);
+    if (!confirmed) return;
+    await api.deleteRecipe(recipe.id);
+    refreshRecipes();
+  }
+
+  let page = (
+    <RecipeLibrary
+      recipes={recipes}
+      onAdd={() => setActivePage('add')}
+      onEdit={(id) => { setEditingRecipeId(id); setActivePage('edit'); }}
+      onDelete={handleDelete}
+    />
+  );
 
   if (activePage === 'add') page = <AddRecipe onSaved={handleSaved} />;
   if (activePage === 'edit') page = <EditRecipe recipeId={editingRecipeId} onSaved={handleSaved} />;
