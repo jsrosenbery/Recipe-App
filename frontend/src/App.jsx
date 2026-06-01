@@ -20,11 +20,6 @@ export default function App() {
   }
 
   async function refreshActivePlan() {
-    const plan = await api.getActiveMealPlan();
-    if (plan) {
-      setActivePlan(plan);
-      return plan;
-    }
     const newPlan = await api.setActiveMealPlan(getMonday());
     setActivePlan(newPlan);
     return newPlan;
@@ -53,6 +48,7 @@ export default function App() {
     const plan = await api.setActiveMealPlan(weekStart);
     setActivePlan(plan);
     setPlannerNotice(`Active week set to ${weekStart}.`);
+    return plan;
   }
 
   async function handleAddToActivePlan(recipe) {
@@ -60,6 +56,7 @@ export default function App() {
       const plan = await api.addRecipeToActiveMealPlan(recipe.id);
       setActivePlan(plan);
       setPlannerNotice(`Added ${recipe.title} to the active week.`);
+      setActivePage('planner');
     } catch (error) {
       setPlannerNotice(error.message);
     }
