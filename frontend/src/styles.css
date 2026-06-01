@@ -266,6 +266,54 @@ main {
   margin: 0;
 }
 
+.dialog-backdrop {
+  align-items: center;
+  background: rgba(17, 24, 39, 0.45);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 1rem;
+  position: fixed;
+  z-index: 20;
+}
+
+.error-dialog {
+  background: #ffffff;
+  border: 1px solid #d7e1dd;
+  border-radius: 8px;
+  box-shadow: 0 24px 80px rgba(17, 24, 39, 0.22);
+  max-width: 480px;
+  padding: 1rem;
+  width: min(100%, 480px);
+}
+
+.error-dialog header {
+  align-items: center;
+  color: #8a3f18;
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: auto 1fr auto;
+}
+
+.error-dialog h2 {
+  color: #263238;
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.error-dialog p {
+  color: #4f5c65;
+  line-height: 1.5;
+  margin: 1rem 0;
+}
+
+.icon-button {
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  width: 36px;
+}
+
 .empty-state,
 .summary-panel,
 .shopping-group {
