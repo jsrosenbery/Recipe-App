@@ -6,7 +6,7 @@ function dishLabel(dishType) {
   return 'Main';
 }
 
-export function RecipeLibrary({ recipes, activePlan, onEdit, onAdd, onDelete, onAddToActivePlan }) {
+export function RecipeLibrary({ recipes, activePlan, notice, onEdit, onAdd, onDelete, onAddToActivePlan }) {
   return (
     <section className="page">
       <header className="page-header">
@@ -14,6 +14,7 @@ export function RecipeLibrary({ recipes, activePlan, onEdit, onAdd, onDelete, on
           <p className="eyebrow">Recipe repository</p>
           <h1>Saved recipes</h1>
           {activePlan && <p className="subtle-line">Active week: {activePlan.week_start}</p>}
+          {notice && <p className="status-message">{notice}</p>}
         </div>
         <button className="primary-action" onClick={onAdd}>Add recipe</button>
       </header>
