@@ -1,6 +1,6 @@
-import { Clock, ExternalLink, Pencil } from 'lucide-react';
+import { Clock, ExternalLink, Pencil, Trash2 } from 'lucide-react';
 
-export function RecipeLibrary({ recipes, onEdit, onAdd }) {
+export function RecipeLibrary({ recipes, onEdit, onAdd, onDelete }) {
   return (
     <section className="page">
       <header className="page-header">
@@ -23,6 +23,7 @@ export function RecipeLibrary({ recipes, onEdit, onAdd }) {
               </div>
               <div className="card-actions">
                 <button onClick={() => onEdit(recipe.id)}><Pencil size={16} /> Edit</button>
+                <button className="danger-action" onClick={() => onDelete(recipe)}><Trash2 size={16} /> Delete</button>
                 {recipe.source_url && <a href={recipe.source_url} target="_blank" rel="noreferrer"><ExternalLink size={16} /> Source</a>}
               </div>
             </div>
