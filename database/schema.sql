@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS recipes (
   source_url TEXT,
   image_url TEXT,
   servings TEXT,
+  dish_type TEXT NOT NULL DEFAULT 'main',
   prep_time TEXT,
   cook_time TEXT,
   total_time TEXT,
@@ -33,6 +34,9 @@ CREATE TABLE IF NOT EXISTS recipes (
 );
 
 ALTER TABLE recipes ALTER COLUMN servings TYPE TEXT USING servings::TEXT;
+ALTER TABLE recipes ADD COLUMN IF NOT EXISTS dish_type TEXT NOT NULL DEFAULT 'main';
+ALTER TABLE recipes DROP CONSTRAINT IF EXISTS recipes_dish_type_check;
+ALTER TABLE recipes ADD CONSTRAINT recipes_dish_type_check CHECK (dish_type IN ('main', 'side', 'both'));
 
 CREATE TABLE IF NOT EXISTS recipe_tags (
   recipe_id UUID REFERENCES recipes(id) ON DELETE CASCADE,
@@ -98,8 +102,8 @@ CREATE TABLE IF NOT EXISTS meal_plan_items (
 );
 
 ALTER TABLE meal_plan_items DROP CONSTRAINT IF EXISTS meal_plan_items_meal_type_check;
-ALTER TABLE meal_plan_items ADD CONSTRAINT meal_plan_items_meal_type_check CHECK (meal_type IN ('main', 'side_1', 'side_2'));
 DELETE FROM meal_plan_items WHERE meal_type NOT IN ('main', 'side_1', 'side_2');
+ALTER TABLE meal_plan_items ADD CONSTRAINT meal_plan_items_meal_type_check CHECK (meal_type IN ('main', 'side_1', 'side_2'));
 
 CREATE TABLE IF NOT EXISTS shopping_lists (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -125,6 +129,7 @@ CREATE TABLE IF NOT EXISTS shopping_list_items (
 );
 
 CREATE INDEX IF NOT EXISTS idx_recipes_user_id ON recipes(user_id);
+CREATE INDEX IF NOT EXISTS idx_recipes_dish_type ON recipes(dish_type);
 CREATE INDEX IF NOT EXISTS idx_ingredients_recipe_id ON ingredients(recipe_id);
 CREATE INDEX IF NOT EXISTS idx_instructions_recipe_id ON instructions(recipe_id);
 CREATE INDEX IF NOT EXISTS idx_meal_plan_items_plan_id ON meal_plan_items(meal_plan_id);
