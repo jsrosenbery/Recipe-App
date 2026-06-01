@@ -1,4 +1,5 @@
 import { JSDOM } from 'jsdom';
+import { categorizeDishType } from './dishCategorizer.js';
 import { normalizeNutrition } from './nutrition.js';
 
 function asArray(value) {
@@ -119,7 +120,7 @@ function fallbackTitleFromUrl(url) {
 }
 
 function fallbackDraft(url, reason, document = null) {
-  return {
+  const draft = {
     title: document?.querySelector('h1')?.textContent?.trim() || document?.title || fallbackTitleFromUrl(url),
     source_url: url,
     image_url: document?.querySelector('meta[property="og:image"]')?.getAttribute('content') || null,
@@ -134,6 +135,7 @@ function fallbackDraft(url, reason, document = null) {
     nutrition: normalizeNutrition(null),
     import_status: 'fallback'
   };
+  return { ...draft, dish_type: categorizeDishType(draft) };
 }
 
 export async function importRecipeFromUrl(url) {
@@ -177,8 +179,7 @@ export async function importRecipeFromUrl(url) {
   }
 
   const instructions = asArray(schema.recipeInstructions).map(textFromInstruction).filter(Boolean);
-
-  return {
+  const recipe = {
     title: schema.name || document.title || fallbackTitleFromUrl(parsedUrl.toString()),
     source_url: parsedUrl.toString(),
     image_url: imageFromSchema(schema.image),
@@ -193,4 +194,6 @@ export async function importRecipeFromUrl(url) {
     nutrition: normalizeNutrition(schema.nutrition),
     import_status: 'schema'
   };
+
+  return { ...recipe, dish_type: categorizeDishType(recipe) };
 }
