@@ -1,13 +1,15 @@
 import { query, withTransaction } from '../db/pool.js';
+import { normalizeDishType } from './dishCategorizer.js';
 import { getDefaultUserId } from './defaultUser.js';
 import { parseIngredient } from './ingredientParser.js';
 
 function normalizeRecipePayload(payload) {
-  return {
+  const recipe = {
     title: payload.title?.trim() || 'Untitled recipe',
     source_url: payload.source_url || payload.sourceUrl || null,
     image_url: payload.image_url || payload.imageUrl || null,
     servings: payload.servings || null,
+    dish_type: payload.dish_type || payload.dishType || null,
     prep_time: payload.prep_time || payload.prepTime || null,
     cook_time: payload.cook_time || payload.cookTime || null,
     total_time: payload.total_time || payload.totalTime || null,
@@ -17,6 +19,9 @@ function normalizeRecipePayload(payload) {
     tags: payload.tags || [],
     nutrition: payload.nutrition || {}
   };
+
+  recipe.dish_type = normalizeDishType(recipe.dish_type, recipe);
+  return recipe;
 }
 
 async function attachRecipeChildren(client, recipeId, recipe, userId) {
@@ -131,10 +136,10 @@ export async function createRecipe(payload) {
   const recipeId = await withTransaction(async (client) => {
     const result = await client.query(
       `INSERT INTO recipes
-        (user_id, title, source_url, image_url, servings, prep_time, cook_time, total_time, notes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        (user_id, title, source_url, image_url, servings, dish_type, prep_time, cook_time, total_time, notes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING *`,
-      [userId, recipe.title, recipe.source_url, recipe.image_url, recipe.servings, recipe.prep_time, recipe.cook_time, recipe.total_time, recipe.notes]
+      [userId, recipe.title, recipe.source_url, recipe.image_url, recipe.servings, recipe.dish_type, recipe.prep_time, recipe.cook_time, recipe.total_time, recipe.notes]
     );
     await attachRecipeChildren(client, result.rows[0].id, recipe, userId);
     return result.rows[0].id;
@@ -150,11 +155,11 @@ export async function updateRecipe(id, payload) {
   const updatedId = await withTransaction(async (client) => {
     const result = await client.query(
       `UPDATE recipes
-       SET title = $2, source_url = $3, image_url = $4, servings = $5, prep_time = $6,
-           cook_time = $7, total_time = $8, notes = $9, updated_at = NOW()
+       SET title = $2, source_url = $3, image_url = $4, servings = $5, dish_type = $6,
+           prep_time = $7, cook_time = $8, total_time = $9, notes = $10, updated_at = NOW()
        WHERE id = $1
        RETURNING *`,
-      [id, recipe.title, recipe.source_url, recipe.image_url, recipe.servings, recipe.prep_time, recipe.cook_time, recipe.total_time, recipe.notes]
+      [id, recipe.title, recipe.source_url, recipe.image_url, recipe.servings, recipe.dish_type, recipe.prep_time, recipe.cook_time, recipe.total_time, recipe.notes]
     );
 
     if (!result.rows[0]) return null;
